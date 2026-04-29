@@ -1,0 +1,167 @@
+<style>
+.chip{font-size:12px;padding:4px 10px;border-radius:20px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary)}
+.slbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-secondary);margin:0 0 .75rem}
+.ph-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:8px;overflow:hidden}
+.ph-hdr{padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;user-select:none}
+.ph-hdr:hover{background:var(--color-background-secondary)}
+.ph-ttl{font-weight:500;font-size:14px;flex:1;color:var(--color-text-primary)}
+.ph-dur{font-size:12px;color:var(--color-text-secondary);white-space:nowrap}
+.ph-chv{color:var(--color-text-tertiary);transition:transform .2s;display:inline-block;font-size:18px;line-height:1}
+.ph-body{display:none;padding:0 16px 14px 48px}
+.ph-body li{font-size:13px;color:var(--color-text-secondary);padding:3px 0;list-style:none;display:flex;gap:8px}
+.ph-body li::before{content:"–";color:var(--color-text-tertiary);flex-shrink:0}
+</style>
+
+<h2 class="sr-only">Projektplanung: Asynchrone RAG-Pipeline – Systemarchitektur, Ingestion-Datenfluss und Implementierungs-Roadmap</h2>
+
+<p class="slbl" style="margin-top:.5rem">Systemarchitektur</p>
+
+<svg width="100%" viewBox="0 0 680 325" role="img">
+<title>Systemarchitektur der asynchronen RAG-Pipeline</title>
+<desc>Vier Hauptkomponenten: API Gateway, Task Queue, Background Worker und Persistence Layer, verbunden durch nummerierte Pfeile.</desc>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<g class="node c-blue" onclick="sendPrompt('Erkläre die Aufgaben des API Gateways in dieser RAG-Pipeline ausführlicher.')">
+<rect x="100" y="60" width="220" height="76" rx="8" stroke-width="0.5"/>
+<text class="th" x="210" y="87" text-anchor="middle" dominant-baseline="central">API Gateway</text>
+<text class="ts" x="210" y="109" text-anchor="middle" dominant-baseline="central">FastAPI · Pydantic</text>
+</g>
+<g class="node c-amber" onclick="sendPrompt('Erkläre die Aufgaben der Task Queue in dieser RAG-Pipeline ausführlicher.')">
+<rect x="400" y="60" width="220" height="76" rx="8" stroke-width="0.5"/>
+<text class="th" x="510" y="87" text-anchor="middle" dominant-baseline="central">Task Queue</text>
+<text class="ts" x="510" y="109" text-anchor="middle" dominant-baseline="central">Redis · ARQ / Celery</text>
+</g>
+<g class="node c-purple" onclick="sendPrompt('Erkläre die Aufgaben des Background Workers in dieser RAG-Pipeline ausführlicher.')">
+<rect x="400" y="220" width="220" height="76" rx="8" stroke-width="0.5"/>
+<text class="th" x="510" y="247" text-anchor="middle" dominant-baseline="central">Background Worker</text>
+<text class="ts" x="510" y="269" text-anchor="middle" dominant-baseline="central">PyMuPDF · LangChain</text>
+</g>
+<g class="node c-teal" onclick="sendPrompt('Erkläre die Aufgaben des Persistence Layers in dieser RAG-Pipeline ausführlicher.')">
+<rect x="100" y="220" width="220" height="76" rx="8" stroke-width="0.5"/>
+<text class="th" x="210" y="247" text-anchor="middle" dominant-baseline="central">Persistence Layer</text>
+<text class="ts" x="210" y="269" text-anchor="middle" dominant-baseline="central">PostgreSQL · Qdrant</text>
+</g>
+<line x1="320" y1="98" x2="398" y2="98" stroke="var(--color-border-secondary)" stroke-width="1" marker-end="url(#ah)"/>
+<line x1="510" y1="136" x2="510" y2="218" stroke="var(--color-border-secondary)" stroke-width="1" marker-end="url(#ah)"/>
+<line x1="400" y1="258" x2="322" y2="258" stroke="var(--color-border-secondary)" stroke-width="1" marker-end="url(#ah)"/>
+<line x1="210" y1="218" x2="210" y2="138" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ah)"/>
+<circle cx="360" cy="98" r="9" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+<text class="ts" x="360" y="98" text-anchor="middle" dominant-baseline="central">1</text>
+<circle cx="510" cy="178" r="9" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+<text class="ts" x="510" y="178" text-anchor="middle" dominant-baseline="central">2</text>
+<circle cx="360" cy="258" r="9" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+<text class="ts" x="360" y="258" text-anchor="middle" dominant-baseline="central">3</text>
+<circle cx="210" cy="178" r="9" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+<text class="ts" x="210" y="178" text-anchor="middle" dominant-baseline="central">4</text>
+<line x1="100" y1="310" x2="128" y2="310" stroke="var(--color-border-secondary)" stroke-width="1" marker-end="url(#ah)"/>
+<text class="ts" x="134" y="310" dominant-baseline="central">Ingestion</text>
+<line x1="230" y1="310" x2="258" y2="310" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ah)"/>
+<text class="ts" x="264" y="310" dominant-baseline="central">Query / Status</text>
+</svg>
+
+<p class="slbl" style="margin-top:2rem">Ingestion-Datenfluss</p>
+
+<svg width="100%" viewBox="0 0 680 140" role="img">
+<title>Ingestion-Datenfluss: Upload, Queueing, Processing, Finalisierung</title>
+<desc>Vier nummerierte Schritte in Farben passend zur Systemarchitektur</desc>
+<defs>
+<marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<g class="c-blue"><circle cx="90" cy="22" r="11"/><text class="th" x="90" y="22" text-anchor="middle" dominant-baseline="central">1</text></g>
+<g class="c-amber"><circle cx="255" cy="22" r="11"/><text class="th" x="255" y="22" text-anchor="middle" dominant-baseline="central">2</text></g>
+<g class="c-purple"><circle cx="420" cy="22" r="11"/><text class="th" x="420" y="22" text-anchor="middle" dominant-baseline="central">3</text></g>
+<g class="c-teal"><circle cx="585" cy="22" r="11"/><text class="th" x="585" y="22" text-anchor="middle" dominant-baseline="central">4</text></g>
+<g class="node c-blue" onclick="sendPrompt('Was passiert beim Upload-Schritt der RAG-Ingestion genau?')">
+<rect x="25" y="44" width="130" height="56" rx="8" stroke-width="0.5"/>
+<text class="th" x="90" y="65" text-anchor="middle" dominant-baseline="central">Upload</text>
+<text class="ts" x="90" y="84" text-anchor="middle" dominant-baseline="central">status: pending</text>
+</g>
+<g class="node c-amber" onclick="sendPrompt('Was passiert beim Queueing-Schritt der RAG-Ingestion genau?')">
+<rect x="190" y="44" width="130" height="56" rx="8" stroke-width="0.5"/>
+<text class="th" x="255" y="65" text-anchor="middle" dominant-baseline="central">Queueing</text>
+<text class="ts" x="255" y="84" text-anchor="middle" dominant-baseline="central">job_id → Redis</text>
+</g>
+<g class="node c-purple" onclick="sendPrompt('Was passiert beim Processing-Schritt der RAG-Ingestion genau?')">
+<rect x="355" y="44" width="130" height="56" rx="8" stroke-width="0.5"/>
+<text class="th" x="420" y="65" text-anchor="middle" dominant-baseline="central">Processing</text>
+<text class="ts" x="420" y="84" text-anchor="middle" dominant-baseline="central">Chunk &amp; Embed</text>
+</g>
+<g class="node c-teal" onclick="sendPrompt('Was passiert beim Finalisierungs-Schritt der RAG-Ingestion genau?')">
+<rect x="520" y="44" width="130" height="56" rx="8" stroke-width="0.5"/>
+<text class="th" x="585" y="65" text-anchor="middle" dominant-baseline="central">Finalisierung</text>
+<text class="ts" x="585" y="84" text-anchor="middle" dominant-baseline="central">status: done</text>
+</g>
+<line x1="155" y1="72" x2="188" y2="72" stroke="var(--color-border-secondary)" stroke-width="1" marker-end="url(#ah2)"/>
+<line x1="320" y1="72" x2="353" y2="72" stroke="var(--color-border-secondary)" stroke-width="1" marker-end="url(#ah2)"/>
+<line x1="485" y1="72" x2="518" y2="72" stroke="var(--color-border-secondary)" stroke-width="1" marker-end="url(#ah2)"/>
+</svg>
+
+<p class="slbl" style="margin-top:2rem">Tech Stack</p>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:2rem">
+<span class="chip">Python 3.12+</span>
+<span class="chip">uv / poetry</span>
+<span class="chip">Docker Compose</span>
+<span class="chip">ruff</span>
+<span class="chip">pytest</span>
+<span class="chip">FastAPI</span>
+<span class="chip">Pydantic v2</span>
+<span class="chip">Redis</span>
+<span class="chip">ARQ / Celery</span>
+<span class="chip">PyMuPDF</span>
+<span class="chip">LangChain</span>
+<span class="chip">PostgreSQL</span>
+<span class="chip">SQLAlchemy</span>
+<span class="chip">Alembic</span>
+<span class="chip">Qdrant</span>
+<span class="chip">OpenAI API</span>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<p class="slbl" style="margin:0">Implementierungs-Roadmap · ~6 Wochen</p>
+<button onclick="toggleAll()" style="font-size:12px;color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:0">alle öffnen / schließen</button>
+</div>
+<div id="roadmap"></div>
+
+<script>
+const P=[
+  {n:1,c:'#888780',t:'Projektfundament',d:'1 Woche',tasks:['Repo-Struktur nach Hexagonaler Architektur anlegen','pyproject.toml mit uv / poetry initialisieren','docker-compose.yml für Redis, PostgreSQL und Qdrant','Pydantic Settings-Klasse für .env-Konfiguration','Logging-Setup mit structlog']},
+  {n:2,c:'#378ADD',t:'API Gateway',d:'1 Woche',tasks:['FastAPI App-Skelett mit klarer Router-Struktur','POST /documents – Datei-Upload & Validierung','PostgreSQL-Eintrag erstellen (status=pending)','GET /status/{job_id} – Job-Status abfragen','POST /query – RAG-Endpoint als Stub anlegen']},
+  {n:3,c:'#BA7517',t:'Task Queue',d:'0,5 Wochen',tasks:['ARQ / Celery Worker-Konfiguration mit Redis','Job-Dispatch aus dem Upload-Endpoint','Dead-Letter Queue für fehlgeschlagene Jobs','Retry-Logik mit exponentiellem Backoff']},
+  {n:4,c:'#7F77DD',t:'Background Worker',d:'1,5 Wochen',tasks:['PDF-Parsing mit PyMuPDF','Chunking-Strategie definieren (Größe & Overlap)','Embedding-Generierung via OpenAI API oder lokal','VectorStore-Interface definieren (Dependency Inversion)','Status-Updates in PostgreSQL je Verarbeitungsschritt']},
+  {n:5,c:'#1D9E75',t:'Persistence & Query',d:'1 Woche',tasks:['SQLAlchemy Adapter für PostgreSQL','Qdrant Adapter gegen VectorStore-Interface','Alembic Migrationen für Metadaten-Schema','Similarity Search & RAG-Antwort zusammensetzen','Query-Endpoint vollständig implementieren']},
+  {n:6,c:'#639922',t:'Testing & Hardening',d:'1 Woche',tasks:['pytest Unit-Tests für Kern-Logik (Ziel: >80 % Coverage)','Integration Tests für End-to-End Ingestion','ruff Linting in CI/CD Pipeline integrieren','Health-Check Endpoints (/health, /ready)','README & Architektur-Dokumentation']}
+];
+const rm=document.getElementById('roadmap');
+let allOpen=false;
+P.forEach(p=>{
+  const d=document.createElement('div');
+  d.className='ph-card';
+  d.style.borderLeft='3px solid '+p.c;
+  d.innerHTML=`<div class="ph-hdr" onclick="tog(${p.n})">
+    <span style="font-size:11px;font-weight:500;color:${p.c};min-width:22px">${String(p.n).padStart(2,'0')}</span>
+    <span class="ph-ttl">${p.t}</span>
+    <span class="ph-dur">${p.d}</span>
+    <span class="ph-chv" id="cv${p.n}">›</span>
+  </div>
+  <div class="ph-body" id="bd${p.n}"><ul>${p.tasks.map(t=>`<li><span>${t}</span></li>`).join('')}</ul></div>`;
+  rm.appendChild(d);
+});
+function tog(n){
+  const b=document.getElementById('bd'+n),c=document.getElementById('cv'+n);
+  const o=b.style.display==='block';
+  b.style.display=o?'none':'block';
+  c.style.transform=o?'':'rotate(90deg)';
+}
+function toggleAll(){
+  allOpen=!allOpen;
+  P.forEach(p=>{
+    document.getElementById('bd'+p.n).style.display=allOpen?'block':'none';
+    document.getElementById('cv'+p.n).style.transform=allOpen?'rotate(90deg)':'';
+  });
+}
+</script>

@@ -1,0 +1,40 @@
+﻿Projekt-Übersicht: Asynchrone RAG-Pipeline (PoC)
+Dieses Dokument beschreibt die Architektur und die Design-Prinzipien für eine robuste, asynchrone RAG-Pipeline. Ziel ist ein modularer Aufbau nach professionellen Software-Standards.
+1. Projektziele
+* Skalierbarkeit: Trennung von API und Rechenlast (Worker).
+* Wartbarkeit: Einsatz von Hexagonaler Architektur (Ports & Adapters).
+* Robustheit: Fehlertoleranz durch Retries und Status-Tracking in der Datenbank.
+* Erweiterbarkeit: Einfacher Austausch von LLM-Providern oder Datenbanken.
+2. Systemarchitektur
+Das System ist in vier Hauptkomponenten unterteilt, die über definierte Schnittstellen kommunizieren.
+Komponente
+	Verantwortung
+	Technologie
+	API-Gateway
+	Annahme von Dateien, Query-Handling, Authentication.
+	FastAPI, Pydantic
+	Task Queue
+	Pufferung von Ingestion-Jobs.
+	Redis + ARQ / Celery
+	Background Worker
+	Parsing, Chunking, Embedding-Generierung.
+	Python (Async), PyMuPDF, LangChain/LlamaIndex
+	Persistence Layer
+	Speicherung von Metadaten und Vektoren.
+	PostgreSQL, Qdrant/Weaviate
+	3. Datenfluss (Ingestion)
+1. Upload: API empfängt Datei -> Speichert Rohdatei -> Erstellt Eintrag in Postgres (status='pending').
+2. Queueing: API sendet job_id an Redis.
+3. Processing: Worker zieht Job -> Extrahiert Text -> Erstellt Chunks -> Erzeugt Embeddings.
+4. Finalisierung: Worker speichert Vektoren -> Aktualisiert Postgres (status='completed').
+4. Modularitäts-Prinzipien
+Um die Langlebigkeit des Codes zu garantieren, setzen wir folgende Prinzipien um:
+* Dependency Inversion: Die Geschäftslogik hängt von Abstraktionen ab, nicht von konkreten Bibliotheken (z.B. ein VectorStore-Interface statt direktem Qdrant-Code).
+* Pydantic Modelle: Strikte Datenvalidierung an allen Systemgrenzen.
+* Environment-basierte Konfiguration: Alle Geheimnisse und URLs werden über .env Dateien gesteuert.
+5. Technologie-Stack & Tooling
+* Sprache: Python 3.12+
+* Package Management: uv oder poetry
+* Linting/Formatting: ruff
+* Tests: pytest mit hoher Abdeckung der Kern-Logik.
+* Infrastruktur: Docker & Docker Compose.
