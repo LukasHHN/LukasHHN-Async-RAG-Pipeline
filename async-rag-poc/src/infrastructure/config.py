@@ -27,6 +27,12 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore"
     )
+    
+    # App Settings
+    log_level: str = "INFO"
+    
+    # NEU: Anthropic Key
+    anthropic_api_key: str = "" # Default leer lassen, wird aus .env überschrieben
 
     @property
     def database_url(self) -> str:
