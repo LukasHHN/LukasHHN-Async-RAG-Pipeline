@@ -145,9 +145,10 @@ async def query_documents(question: str = Form(...)):  # <--- HIER GEÄNDERT
         # 3. Kontext zusammenbauen
         context_texts = []
         for hit in search_result:
-            # Wir ziehen den Text aus der Payload, die der Worker gespeichert hat
-            chunk_text = hit.payload.get("text", "") 
-            filename = hit.payload.get("filename", "Unbekannt")
+            # Pylance-Fix: Wir garantieren ein Dictionary mit (hit.payload or {})
+            payload = hit.payload or {}
+            chunk_text = payload.get("text", "")
+            filename = payload.get("filename", "Unbekannt")
             context_texts.append(f"--- Aus Dokument '{filename}' ---\n{chunk_text}")
             
         full_context = "\n\n".join(context_texts)
@@ -177,7 +178,8 @@ Wenn die Antwort nicht im Kontext steht, sage ehrlich, dass du es basierend auf 
         
         return {
             "answer": answer,
-            "sources": [hit.payload.get("filename") for hit in search_result] # Wir geben auch die Quellen zurück!
+            # Pylance-Fix: Auch hier die sichere Abfrage mit or {}
+            "sources": [(hit.payload or {}).get("filename", "Unbekannt") for hit in search_result]
         }
         
     except Exception as e:
