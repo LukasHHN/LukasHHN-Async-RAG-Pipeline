@@ -146,7 +146,7 @@ async def query_documents(question: str = Form(...)):  # <--- HIER GEÄNDERT
         context_texts = []
         for hit in search_result:
             # Wir ziehen den Text aus der Payload, die der Worker gespeichert hat
-            chunk_text = hit.payload.get("text", "")
+            chunk_text = hit.payload.get("text", "") 
             filename = hit.payload.get("filename", "Unbekannt")
             context_texts.append(f"--- Aus Dokument '{filename}' ---\n{chunk_text}")
             
@@ -164,7 +164,7 @@ Wenn die Antwort nicht im Kontext steht, sage ehrlich, dass du es basierend auf 
         # 5. Claude API aufrufen
         logger.info("calling_claude")
         response = await anthropic_client.messages.create(
-            model="claude-3-5-sonnet-20241022", # Das aktuelle, schlaue Modell
+            model="claude-sonnet-4-6", # Das neue Modell
             max_tokens=1024,
             system=system_prompt,
             messages=[
