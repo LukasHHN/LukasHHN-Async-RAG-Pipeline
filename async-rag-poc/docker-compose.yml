@@ -1,32 +1,84 @@
-# docker-compose.yml
-services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: rag_user
-      POSTGRES_PASSWORD: rag_password
-      POSTGRES_DB: rag_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+version: '3.8'
 
+services:
+  # 1. Datenbanken
   redis:
-    image: redis:7-alpine
+    image: redis:alpine
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
 
   qdrant:
     image: qdrant/qdrant:latest
     ports:
-      - "6333:6333" # REST API
-      - "6334:6334" # gRPC
-    volumes:
-      - qdrant_data:/qdrant/storage
+      - "6333:6333"
 
+  # WICHTIG: Hier ist die fehlende Postgres-Datenbank!
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=rag_user
+      - POSTGRES_PASSWORD=rag_password
+      - POSTGRES_DB=rag_database
+    ports:
+      - "5432:5432"
+
+  # 2. Unsere Python-Applikationen
+  api:
+    build: .
+    command: uv run uvicorn src.interfaces.api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis     # NEU: Der Docker-Name von Redis
+      - REDIS_PORT=6379      # NEU
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # Postgres Zugangsdaten für Pydantic
+      - POSTGRES_USER=rag_user
+      - POSTGRES_PASSWORD=rag_password
+      - POSTGRES_DB=rag_database
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+    depends_on:
+      - redis
+      - qdrant
+      - postgres
+    volumes:                                  # NEU: Das geteilte Laufwerk einhängen
+      - shared_uploads:/app/data/uploads
+
+  worker:
+    build: .
+    command: uv run arq src.interfaces.worker.main.WorkerSettings
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis     # NEU: Der Docker-Name von Redis
+      - REDIS_PORT=6379      # NEU
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # Postgres Zugangsdaten für Pydantic
+      - POSTGRES_USER=rag_user
+      - POSTGRES_PASSWORD=rag_password
+      - POSTGRES_DB=rag_database
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+    depends_on:
+      - redis
+      - qdrant
+      - postgres
+    volumes:                                  # NEU: Genau dasselbe Laufwerk einhängen
+      - shared_uploads:/app/data/uploads
+
+  frontend:
+    build: .
+    command: uv run streamlit run src/interfaces/frontend/app.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://api:8000
+    depends_on:
+      - api
 volumes:
-  postgres_data:
-  redis_data:
-  qdrant_data:
+  shared_uploads:

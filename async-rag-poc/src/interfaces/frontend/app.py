@@ -1,9 +1,9 @@
-# src/interfaces/frontend/app.py
 import streamlit as st
 import requests
+import os # NEU: OS importieren
 
-# Die Adresse unserer FastAPI
-API_URL = "http://127.0.0.1:8000"
+# Die Adresse liest nun die Umgebungsvariable aus, mit lokalem Fallback
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 # --- Seiten-Konfiguration ---
 st.set_page_config(page_title="KI Dokumenten-Assistent", page_icon="📄", layout="wide")
